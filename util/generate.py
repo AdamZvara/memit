@@ -103,9 +103,15 @@ def generate_fast(
 
     with torch.no_grad():
         while input_ids.size(1) < max_out_len:  # while not exceeding max output length
+
+            if past_key_values is None:
+                call_input_ids = input_ids[:, cur_context]
+            else:
+                call_input_ids = input_ids[:, -1:].contiguous()
+
             model_out = model(
-                input_ids=input_ids[:, cur_context],
-                attention_mask=attention_mask[:, cur_context],
+                input_ids=call_input_ids,
+                attention_mask=attention_mask,
                 past_key_values=past_key_values,
                 use_cache=True,
             )
@@ -113,11 +119,16 @@ def generate_fast(
             softmax_out = torch.nn.functional.softmax(logits[:, -1, :], dim=1)
 
             # Top-k sampling
-            tk = torch.topk(softmax_out, top_k, dim=1).indices
-            softmax_out_top_k = torch.gather(softmax_out, 1, tk)
-            softmax_out_top_k = softmax_out_top_k / softmax_out_top_k.sum(1)[:, None]
-            new_tok_indices = torch.multinomial(softmax_out_top_k, 1)
-            new_toks = torch.gather(tk, 1, new_tok_indices)
+            step_logits = logits[:, -1, :]  # the logits for the last position
+            if top_k is not None and top_k > 0:
+                topk_vals, topk_idx = torch.topk(step_logits, min(top_k, step_logits.size(-1)), dim=1)
+                topk_probs = torch.nn.functional.softmax(topk_vals, dim=1)
+                # sample indices among top-k
+                new_tok_indices = torch.multinomial(topk_probs, 1)
+                new_toks = torch.gather(topk_idx, 1, new_tok_indices)
+            else:
+                probs = torch.nn.functional.softmax(step_logits, dim=1)
+                new_toks = torch.multinomial(probs, 1)
 
             # If we're currently generating the continuation for the last token in `input_ids`,
             # create a new index so we can insert the new token
