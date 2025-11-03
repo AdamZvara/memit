@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -N memit_evaluate
-#PBS -l select=1:ncpus=2:mem=16gb:scratch_local=10gb:ngpus=1:gpu_mem=16gb
-#PBS -l walltime=0:30:00 
+#PBS -l select=1:ncpus=2:mem=32gb:scratch_local=10gb:ngpus=1:gpu_mem=16gb
+#PBS -l walltime=1:00:00 
 
 # define a DATADIR variable: directory where the input files are taken from and where the output will be copied to
 DATADIR=/storage/plzen1/home/xzvara01
@@ -25,7 +25,8 @@ fi
 conda activate memit_original
 
 # run memit
-python3 -m experiments.evaluate --alg_name=MEMIT --model_name=gpt2-xl --hparams_fname=gpt2-xl.json --num_edits=10000
+EDITS=1000
+python3 -m experiments.evaluate --alg_name=MEMIT --model_name=gpt2-xl --hparams_fname=gpt2-xl.json --num_edits=$EDITS
 if [ $? -ne 0 ]; then 
     echo >&2 "Error while running python MEMIT"; exit 3;
 fi
