@@ -39,7 +39,8 @@ def compute_rewrite_quality_counterfact(
 
     :return: Dictionary containing rewriting metrics
     """
-
+    nltk.download("punkt", quiet=True)
+    
     # First, unpack rewrite evaluation record.
     subject, target_new, target_true = (
         record["requested_rewrite"][x] for x in ["subject", "target_new", "target_true"]
