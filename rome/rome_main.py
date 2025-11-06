@@ -24,12 +24,14 @@ def apply_rome_to_model(
     copy=False,
     return_orig_weights=False,
     cache_template: Optional[str] = None,
+    return_deltas: bool = False,
 ) -> Tuple[AutoModelForCausalLM, List[str]]:
     """
     Returns a model with the desired changes.
 
     :param copy: If true, will preserve the original model while creating a new one to edit.
         Note that you are responsible for deallocating the new model's memory to avoid leaks.
+    :param return_deltas: If true, return the computed deltas in the weights_copy dict under 'deltas' key
 
     :return: (1) the updated model, (2) an original copy of the weights that changed
     """
@@ -38,6 +40,7 @@ def apply_rome_to_model(
         model = deepcopy(model)
 
     weights_copy = {}
+    all_deltas = {}
 
     for i, request in enumerate(requests):
         # Caching is only valid on first request, since the model changes afterwards
@@ -58,6 +61,19 @@ def apply_rome_to_model(
                 w[...] += upd_matrix
 
         print(f"New weights successfully inserted into {list(deltas.keys())}")
+
+        # Accumulate deltas from all requests
+        if return_deltas:
+            for w_name, (delta_u, delta_v) in deltas.items():
+                if w_name not in all_deltas:
+                    all_deltas[w_name] = (delta_u, delta_v)
+                else:
+                    # For multiple edits, accumulate the deltas
+                    prev_u, prev_v = all_deltas[w_name]
+                    all_deltas[w_name] = (delta_u, delta_v)  # Store latest for now
+
+    if return_deltas:
+        weights_copy["deltas"] = all_deltas
 
     return model, weights_copy
 

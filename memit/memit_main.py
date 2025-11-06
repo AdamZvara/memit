@@ -29,11 +29,13 @@ def apply_memit_to_model(
     copy=False,
     return_orig_weights=False,
     cache_template: Optional[str] = None,
+    return_deltas: bool = False,
 ) -> Tuple[AutoModelForCausalLM, Dict[str, Any]]:
     """
     Returns a model with the desired changes.
     :param copy: If true, will preserve the original model while creating a new one to edit.
         Note that you are responsible for deallocating the new model's memory to avoid leaks.
+    :param return_deltas: If true, return the computed deltas in the weights_copy dict under 'deltas' key
     :return: (1) the updated model, (2) an original copy of the weights that changed
     """
 
@@ -56,6 +58,9 @@ def apply_memit_to_model(
             w[...] += upd_matrix.float()
 
     print(f"New weights successfully inserted into {list(deltas.keys())}")
+
+    if return_deltas:
+        weights_copy["deltas"] = deltas
 
     return model, weights_copy
 

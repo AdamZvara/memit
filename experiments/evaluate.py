@@ -22,6 +22,7 @@ from memit import MEMITHyperParams, apply_memit_to_model
 from rome import ROMEHyperParams, apply_rome_to_model
 from util import nethook
 from util.globals import *
+from util.delta_saver import save_deltas as save_deltas_to_disk
 
 ALG_DICT = {
     "MEMIT": (MEMITHyperParams, apply_memit_to_model),
@@ -50,6 +51,8 @@ def main(
     dir_name: str,
     num_edits: int = 1,
     use_cache: bool = False,
+    save_deltas: bool = False,
+    restore_original: bool = True,
 ):
     # Set algorithm-specific variables
     params_class, apply_algo = ALG_DICT[alg_name]
@@ -142,6 +145,10 @@ def main(
         )
         etc_args = dict(cache_template=cache_template) if any(alg in alg_name for alg in ["ROME", "MEMIT"]) else dict()
 
+        # Add return_deltas parameter for ROME and MEMIT
+        if save_deltas and any(alg in alg_name for alg in ["ROME", "MEMIT"]):
+            etc_args["return_deltas"] = True
+
         start = time()
         edited_model, weights_copy = apply_algo(
             model,
@@ -158,6 +165,21 @@ def main(
         )
         exec_time = time() - start
         print("Execution took", exec_time)
+
+        # Save deltas if requested
+        if save_deltas and "deltas" in weights_copy:
+            deltas_dir = run_dir / "deltas"
+            for record in record_chunks:
+                save_deltas_to_disk(
+                    weights_copy["deltas"],
+                    deltas_dir,
+                    record["case_id"],
+                    model_name if isinstance(model_name, str) else model.config._name_or_path,
+                    hparams,
+                    [{"case_id": rec["case_id"], **rec["requested_rewrite"]} for rec in record_chunks],
+                )
+            # Remove deltas from weights_copy to avoid restoring them
+            del weights_copy["deltas"]
 
         # Evaluate new model
         start = time()
@@ -190,10 +212,15 @@ def main(
             with open(out_file, "w") as f:
                 json.dump(metrics, f, indent=1)
 
-        # Restore original weights
-        with torch.no_grad():
-            for k, v in weights_copy.items():
-                nethook.get_parameter(model, k)[...] = v.to("cuda")
+        # Restore original weights (if requested)
+        if restore_original:
+            with torch.no_grad():
+                for k, v in weights_copy.items():
+                    if k != "deltas":  # Skip the deltas key
+                        nethook.get_parameter(model, k)[...] = v.to("cuda")
+            print("Original weights restored")
+        else:
+            print("Skipping weight restoration (model remains edited)")
 
         print("Evaluation took", time() - start)
 
@@ -293,7 +320,19 @@ if __name__ == "__main__":
         action="store_true",
         help="Use cached k/v pairs",
     )
-    parser.set_defaults(skip_generation_tests=False, conserve_memory=False)
+    parser.add_argument(
+        "--save_deltas",
+        dest="save_deltas",
+        action="store_true",
+        help="Save weight deltas to disk for later inference. Deltas are saved in results/<alg_name>/<run_id>/deltas/",
+    )
+    parser.add_argument(
+        "--no_restore",
+        dest="restore_original",
+        action="store_false",
+        help="Skip restoring original weights after each edit. By default, weights are restored after evaluation.",
+    )
+    parser.set_defaults(skip_generation_tests=False, conserve_memory=False, restore_original=True)
     args = parser.parse_args()
 
     main(
@@ -309,4 +348,6 @@ if __name__ == "__main__":
         dir_name=args.alg_name,
         num_edits=args.num_edits,
         use_cache=args.use_cache,
+        save_deltas=args.save_deltas,
+        restore_original=args.restore_original,
     )
