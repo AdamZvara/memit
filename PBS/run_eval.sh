@@ -1,7 +1,15 @@
 #!/bin/bash
 #PBS -N memit_evaluate_eluther
 #PBS -l select=1:ncpus=2:mem=64gb:scratch_local=30gb:ngpus=1:gpu_mem=26gb
-#PBS -l walltime=0:30:00 
+#PBS -l walltime=0:30:00
+
+export HF_HOME='/storage/brno2/home/xzvara01/HFCache'
+
+export MODEL='gptxl'
+export CHANGES_CNT=20 # how many facts to change
+export EDITS_AT_TIME=10 # how many facts are changed in a single run of MEMIT
+
+source configs/${MODEL}.sh
 
 # define a DATADIR variable: directory where the input files are taken from and where the output will be copied to
 DATADIR=/storage/brno2/home/xzvara01
@@ -25,17 +33,13 @@ fi
 conda activate memit_original
 
 # run memit
-export HF_HOME='/storage/brno2/home/xzvara01/HFCache'
-export MODEL_NAME='EleutherAI/gpt-j-6B'
-export MODEL_PARAMS='EleutherAI_gpt-j-6B'
-export CHANGES_CNT=20 # how many facts to change
-export EDITS_AT_TIME=10 # how many facts are changed in a single run of MEMIT
 python3 -m experiments.evaluate \
 	--alg_name=MEMIT \
 	--model_name=$MODEL_NAME \
 	--hparams_fname="$MODEL_PARAMS.json" \
 	--num_edits=$EDITS_AT_TIME \
-	--dataset_size_limit=$CHANGES_CNT
+	--dataset_size_limit=$CHANGES_CNT \
+	--save_deltas
 
 if [ $? -ne 0 ]; then 
     echo >&2 "Error while running python MEMIT"; exit 3;
