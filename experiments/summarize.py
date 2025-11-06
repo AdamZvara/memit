@@ -14,12 +14,12 @@ def main(
     runs: Optional[List],
     first_n_cases=None,
     get_uncompressed=False,
-    abs_path=False,
+    abs_path=True,
 ):  # runs = None -> all runs
     summaries = []
     uncompressed = []
 
-    for run_dir in (RESULTS_DIR / dir_name if not abs_path else dir_name).iterdir():
+    for run_dir in (RESULTS_DIR / dir_name if not abs_path else Path(dir_name)).iterdir():
         # Skip if we're not interested
         if runs is not None and all(run not in str(run_dir) for run in runs):
             continue
