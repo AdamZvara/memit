@@ -1,7 +1,11 @@
 # Pipeline dumps, data directory
 res
 results
-data
+data/tfidf_vocab.json
+data/attribute_snippets.json
+data/multi_counterfact.json
+data/counterfact.json
+data/idf.npy
 !notebooks/data
 *_tmp_*_.json
 *_kmeng01g1gn*

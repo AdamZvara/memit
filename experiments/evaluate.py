@@ -14,6 +14,7 @@ from dsets import (
     CounterFactDataset,
     MENDQADataset,
     MultiCounterFactDataset,
+    CounterTestDataset,
     get_tfidf_vectorizer,
 )
 from experiments.py.eval_utils_counterfact import compute_rewrite_quality_counterfact
@@ -33,6 +34,7 @@ ALG_DICT = {
 DS_DICT = {
     "mcf": (MultiCounterFactDataset, compute_rewrite_quality_counterfact),
     "cf": (CounterFactDataset, compute_rewrite_quality_counterfact),
+    "ct": (CounterTestDataset, compute_rewrite_quality_counterfact),
     "zsre": (MENDQADataset, compute_rewrite_quality_zsre),
 }
 
@@ -245,9 +247,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--ds_name",
-        choices=["mcf", "cf", "zsre"],
+        choices=["mcf", "cf", "zsre", "ct"],
         default="mcf",
-        help="Dataset to perform evaluations on. Either CounterFact (cf), MultiCounterFact (mcf), or zsRE (zsre).",
+        help="Dataset to perform evaluations on. Either CounterFact (cf), MultiCounterFact (mcf), zsRE (zsre), or CounterTest (ct).",
     )
     parser.add_argument(
         "--continue_from_run",
