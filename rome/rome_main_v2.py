@@ -24,7 +24,7 @@ def apply_rome_to_model_v2(
     copy=False,
     return_orig_weights=False,
     cache_template: Optional[str] = None,
-) -> Tuple[AutoModelForCausalLM, List[str], List[float]]:
+) -> Tuple[AutoModelForCausalLM, List[str], List[List[float]]]:
     """
     Returns a model with the desired changes + probabilities during optimization step.
 
@@ -38,13 +38,13 @@ def apply_rome_to_model_v2(
         model = deepcopy(model)
 
     weights_copy = {}
-
+    probs = []
     for i, request in enumerate(requests):
         # Caching is only valid on first request, since the model changes afterwards
         deltas, prob = execute_rome(
             model, tok, request, hparams, (cache_template if i == 0 else None)
         )
-
+        probs.append(prob)
         with torch.no_grad():
             for w_name, (delta_u, delta_v) in deltas.items():
                 upd_matrix = delta_u.unsqueeze(1) @ delta_v.unsqueeze(0)
@@ -59,7 +59,7 @@ def apply_rome_to_model_v2(
 
         print(f"New weights successfully inserted into {list(deltas.keys())}")
 
-    return model, weights_copy, prob
+    return model, weights_copy, probs
 
 
 def execute_rome(

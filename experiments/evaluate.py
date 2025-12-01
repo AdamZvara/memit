@@ -147,7 +147,7 @@ def main(
         etc_args = dict(cache_template=cache_template) if any(alg in alg_name for alg in ["ROME", "ROMEv2" "MEMIT"]) else dict()
 
         start = time()
-        edited_model, weights_copy = apply_algo(
+        edited_model, weights_copy, probs = apply_algo(
             model,
             tok,
             [
@@ -166,7 +166,7 @@ def main(
         # Evaluate new model
         start = time()
         gen_test_vars = [snips, vec]
-        for record in record_chunks:
+        for i, record in enumerate(record_chunks):
             out_file = Path(case_result_template.format(num_edits, record["case_id"]))
             if out_file.exists():
                 print(f"Skipping {out_file}; already exists")
@@ -189,6 +189,7 @@ def main(
                     "object_len": obj_len,
                     "relation_len": rel_len,
                 },
+                "probs": probs[i],
                 "post": ds_eval_method(
                     edited_model,
                     tok,
