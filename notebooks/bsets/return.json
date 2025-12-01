@@ -1,0 +1,17 @@
+{
+    "PURE": [
+        "def compute_value(x, y):\n    ",
+        "def add(a, b):\n    c = a + b\n    ",
+        "def square(n):\n    s = n * n\n    # give back s\n\ndef cube(n):\n    ",
+        "def transform(x):\n    # give back the processed result\n    "
+    ],
+    "PRETEXT": [
+        "Here is a simple Python function:\ndef get_name():\n    ",
+        "The following Python code computes an average:\ndef average(nums):\n    total = 0\n    for n in nums:\n        total += n\n    ",
+        "Below is a Python function that calculates the area of a rectangle:\ndef area(width, height):\n    ",
+        "# Example: compute factorial\ndef factorial(n):\n    "
+    ],
+    "INSTR": [
+        "User: Write a Python expression to calculate area of a rectangle\nAssistant: area = x * y\n\nWrite a Python function that doubles a number:\ndef double(x):\n    "
+    ]
+}
