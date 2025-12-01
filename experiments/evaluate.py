@@ -44,6 +44,7 @@ def main(
     model_name: Union[str, Tuple],
     hparams_fname: str,
     ds_name: str,
+    ct_name: str,
     dataset_size_limit: int,
     continue_from_run: str,
     skip_generation_tests: bool,
@@ -108,7 +109,7 @@ def main(
         assert ds_name != "cf", f"{ds_name} does not support multiple edits"
 
     ds_class, ds_eval_method = DS_DICT[ds_name]
-    ds = ds_class(DATA_DIR, tok=tok, size=dataset_size_limit)
+    ds = ds_class(DATA_DIR, tok=tok, size=dataset_size_limit, name=ct_name if ds_name=="ct" else None)
 
     # Get cache templates
     cache_template = None
@@ -251,6 +252,14 @@ if __name__ == "__main__":
         default="mcf",
         help="Dataset to perform evaluations on. Either CounterFact (cf), MultiCounterFact (mcf), zsRE (zsre), or CounterTest (ct).",
     )
+
+    parser.add_argument(
+        "--ct_name",
+        type=str,
+        default="countertest_sport_subset",
+        help="Name of CounterTest dataset (without .json extension). Only used if ds_name is 'ct'.",
+    )
+
     parser.add_argument(
         "--continue_from_run",
         type=str,
@@ -303,6 +312,7 @@ if __name__ == "__main__":
         args.model_name,
         args.hparams_fname,
         args.ds_name,
+        args.ct_name,
         args.dataset_size_limit,
         args.continue_from_run,
         args.skip_generation_tests,
