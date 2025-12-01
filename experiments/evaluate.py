@@ -144,7 +144,7 @@ def main(
             if conserve_memory
             else dict()
         )
-        etc_args = dict(cache_template=cache_template) if any(alg in alg_name for alg in ["ROME", "MEMIT"]) else dict()
+        etc_args = dict(cache_template=cache_template) if any(alg in alg_name for alg in ["ROME", "ROMEv2" "MEMIT"]) else dict()
 
         start = time()
         edited_model, weights_copy = apply_algo(
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--alg_name",
-        choices=["MEMIT", "ROME", "ROMEv2" "FT", "MEND"],
+        choices=["MEMIT", "ROME", "ROMEv2", "FT", "MEND"],
         default="ROME",
         help="Editing algorithm to use. Results are saved in results/<alg_name>/<run_id>, "
         "where a new run_id is generated on each run. "
