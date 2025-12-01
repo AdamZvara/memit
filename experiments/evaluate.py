@@ -20,13 +20,14 @@ from dsets import (
 from experiments.py.eval_utils_counterfact import compute_rewrite_quality_counterfact
 from experiments.py.eval_utils_zsre import compute_rewrite_quality_zsre
 from memit import MEMITHyperParams, apply_memit_to_model
-from rome import ROMEHyperParams, apply_rome_to_model
+from rome import ROMEHyperParams, apply_rome_to_model, apply_rome_to_model_v2
 from util import nethook
 from util.globals import *
 
 ALG_DICT = {
     "MEMIT": (MEMITHyperParams, apply_memit_to_model),
     "ROME": (ROMEHyperParams, apply_rome_to_model),
+    "ROMEv2": (ROMEHyperParams, apply_rome_to_model_v2),
     "FT": (FTHyperParams, apply_ft_to_model),
     "MEND": (MENDHyperParams, MendRewriteExecutor().apply_to_model),
 }
@@ -171,12 +172,23 @@ def main(
                 print(f"Skipping {out_file}; already exists")
                 continue
 
+            # Calculate tokens sizes
+            sub, obj, rel = record['requested_rewrite']['subject'], record['requested_rewrite']['target_new'][str], record['requested_rewrite']['prompt']
+            sub_len = len(tok.encode(sub))
+            obj_len = len(tok.encode(obj))
+            rel_len = len(tok.encode(rel))
+
             metrics = {
                 "case_id": record["case_id"],
                 "grouped_case_ids": case_ids,
                 "num_edits": num_edits,
                 "requested_rewrite": record["requested_rewrite"],
                 "time": exec_time,
+                "lengths": {
+                    "subject_len": sub_len,
+                    "object_len": obj_len,
+                    "relation_len": rel_len,
+                },
                 "post": ds_eval_method(
                     edited_model,
                     tok,
@@ -225,7 +237,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--alg_name",
-        choices=["MEMIT", "ROME", "FT", "MEND"],
+        choices=["MEMIT", "ROME", "ROMEv2" "FT", "MEND"],
         default="ROME",
         help="Editing algorithm to use. Results are saved in results/<alg_name>/<run_id>, "
         "where a new run_id is generated on each run. "
@@ -256,7 +268,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ct_name",
         type=str,
-        default="countertest_sport_subset",
+        default="countertest_sport",
         help="Name of CounterTest dataset (without .json extension). Only used if ds_name is 'ct'.",
     )
 
