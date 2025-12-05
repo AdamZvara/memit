@@ -173,7 +173,7 @@ def main(
                 continue
 
             # Calculate tokens sizes
-            sub, obj, rel = record['requested_rewrite']['subject'], record['requested_rewrite']['target_new'][str], record['requested_rewrite']['prompt']
+            sub, obj, rel = record['requested_rewrite']['subject'], record['requested_rewrite']['target_new']['str'], record['requested_rewrite']['prompt']
             sub_len = len(tok.encode(sub))
             obj_len = len(tok.encode(obj))
             rel_len = len(tok.encode(rel))
