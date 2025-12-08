@@ -1,6 +1,7 @@
 set -a # exports all variables to parent scripts
 
 HF_HOME='/storage/brno2/home/xzvara01/HFCache'
+TRANSFORMERS_CACHE=$HF_HOME
 
 # define a DATADIR variable: directory where the input files are taken from and where the output will be copied to
 DATADIR=/storage/brno2/home/xzvara01
@@ -14,7 +15,7 @@ echo "$(date) $PBS_JOBID is running on node `hostname -f` in a scratch directory
 test -n "$SCRATCHDIR" || { echo >&2 "Variable SCRATCHDIR is not set!"; exit 1; }
 
 # copy memit into scratch directory
-cp $DATADIR/memit  $SCRATCHDIR -r || { echo >&2 "Error while copying input file(s)!"; exit 2; }
+cp $DATADIR/memit $SCRATCHDIR -r || { echo >&2 "Error while copying input file(s)!"; exit 2; }
 cd $SCRATCHDIR/memit
 
 # setup conda environment
