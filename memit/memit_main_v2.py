@@ -41,7 +41,7 @@ def apply_memit_to_model_v2(
     if copy:
         model = deepcopy(model)
 
-    deltas = execute_memit(model, tok, requests, hparams, cache_template=cache_template)
+    deltas, probs = execute_memit(model, tok, requests, hparams, cache_template=cache_template)
 
     with torch.no_grad():
         for w_name, (key_mat, val_mat) in deltas.items():
@@ -57,7 +57,7 @@ def apply_memit_to_model_v2(
 
     print(f"New weights successfully inserted into {list(deltas.keys())}")
 
-    return model, weights_copy
+    return model, weights_copy, probs
 
 
 def execute_memit(
@@ -128,7 +128,7 @@ def execute_memit(
 
         # Compute k/v pair if not loaded from cache
         if not data_loaded:
-            cur_z, x = compute_z2(
+            cur_z, x = compute_z(
                 model,
                 tok,
                 request,
