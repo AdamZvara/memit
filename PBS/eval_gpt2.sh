@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -N gpt2_countertest_birthplace
-#PBS -l select=1:ncpus=2:mem=64gb:scratch_local=20gb:ngpus=1:gpu_mem=10gb
+#PBS -l select=1:ncpus=2:mem=64gb:scratch_local=20gb:ngpus=1:gpu_mem=20gb
 #PBS -l walltime=5:00:00
 
 source /storage/brno2/home/xzvara01/memit/PBS/base_eval.sh
@@ -23,7 +23,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # copy results
-RESULTS="$DATADIR/results/$CTNAME"
+RESULTS="$DATADIR/results/gpt2$CTNAME"
 mkdir $RESULTS
 cp -r results $RESULTS
 
