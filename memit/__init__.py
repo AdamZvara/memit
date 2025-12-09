@@ -1,1 +1,2 @@
 from .memit_main import MEMITHyperParams, apply_memit_to_model
+from .memit_main_v2 import apply_memit_to_model_v2

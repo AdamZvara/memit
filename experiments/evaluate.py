@@ -19,13 +19,14 @@ from dsets import (
 )
 from experiments.py.eval_utils_counterfact import compute_rewrite_quality_counterfact
 from experiments.py.eval_utils_zsre import compute_rewrite_quality_zsre
-from memit import MEMITHyperParams, apply_memit_to_model
+from memit import MEMITHyperParams, apply_memit_to_model, apply_memit_to_model_v2
 from rome import ROMEHyperParams, apply_rome_to_model, apply_rome_to_model_v2
 from util import nethook
 from util.globals import *
 
 ALG_DICT = {
     "MEMIT": (MEMITHyperParams, apply_memit_to_model),
+    "MEMITv2": (MEMITHyperParams, apply_memit_to_model_v2),
     "ROME": (ROMEHyperParams, apply_rome_to_model),
     "ROMEv2": (ROMEHyperParams, apply_rome_to_model_v2),
     "FT": (FTHyperParams, apply_ft_to_model),
@@ -238,7 +239,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--alg_name",
-        choices=["MEMIT", "ROME", "ROMEv2", "FT", "MEND"],
+        choices=["MEMIT", "ROME", "ROMEv2", "MEMITv2", "FT", "MEND"],
         default="ROME",
         help="Editing algorithm to use. Results are saved in results/<alg_name>/<run_id>, "
         "where a new run_id is generated on each run. "
